@@ -32,6 +32,8 @@ public class ParseController {
     public void parse() throws Exception{
 
         KafkaLawyer kafkaLawyer =new KafkaLawyer();
+        kafkaLawyer.setDateType("com.icourt.lawyercrawlparse.service.impl.BtypeParseServiceImpl");
+
         List<KafkaLawyer> all = sqlManager.template(kafkaLawyer,1,10);
         for (KafkaLawyer e : all) {
             String message = e.getMessage();

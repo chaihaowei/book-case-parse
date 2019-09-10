@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 解析类
@@ -30,23 +31,53 @@ public class BtypeParseServiceImpl implements IParseService, InitializingBean {
         dualtypeMap();
     }
 
+    private String nameDual (String key,String value){
+        String userSimpleName = User.class.getSimpleName();
+        String lawyerSimpleName = Lawyer.class.getSimpleName();
+
+        String userName= userSimpleName+User.ALIAS_name;
+        if(StringUtils.equalsAnyIgnoreCase(key,userName)){
+            String  name = StringUtils.replace(value, "律师", "");
+            return name;
+        }
+
+
+        if(StringUtils.equalsAnyIgnoreCase(key,userSimpleName+User.ALIAS_headimgurl)){
+            String  name = StringUtils.replace(value, "//", "");
+            return name;
+        }
+
+        return value;
+
+    }
+
     private void dualtypeMap() {
         String userSimpleName = User.class.getSimpleName();
         String lawyerSimpleName = Lawyer.class.getSimpleName();
 
+        //姓名
         xpathType.put(userSimpleName+User.ALIAS_name,"/body/div[3]/div[2]/div[1]/div[2]/div/a/text()");
-        xpathType.put(userSimpleName+User.ALIAS_mobile_phone,"//*[@id=\"j-main-left\"]/ul/li[2]/span[2]/text()");
-        xpathType.put(userSimpleName+User.ALIAS_position,"//*[@id=\"j-main-left\"]/ul/li[3]/span[2]/text()");
-        xpathType.put(userSimpleName+User.ALIAS_institution,"//*[@id=\"j-main-left\"]/ul/li[4]/span[2]/text()");
+        //头像
+        xpathType.put(userSimpleName+User.ALIAS_headimgurl,"/body/div[3]/div[2]/div[1]/div[1]/a/img/@src");
+        //机构名称
         xpathType.put(userSimpleName+User.ALIAS_institution,"//*[@id=\"j-main-left\"]/ul/li[4]/span[2]/text()");
 
-        xpathType.put(lawyerSimpleName+Lawyer.ALIAS_license_number,"//*[@id=\"j-main-left\"]/ul/li[5]/span[2]/text()");
-        xpathType.put(userSimpleName+User.ALIAS_email,"//*[@id=\"j-main-left\"]/ul/li[6]/span[2]/text()");
+        //手机号
+        xpathType.put(userSimpleName+User.ALIAS_mobile_phone,"//*[@id=\"j-main-left\"]/ul/li[2]/span[2]/text()");
+        //职务？ todo
+        xpathType.put(userSimpleName+User.ALIAS_position,"//*[@id=\"j-main-left\"]/ul/li[3]/span[2]/text()");
+
+        //机构名称
+        xpathType.put(userSimpleName+User.ALIAS_institution,"/body/div[3]/div[2]/div[2]/ul[1]/li[2]/span/text()");
+
+        //机构地址
         xpathType.put(userSimpleName+User.ALIAS_address,"/body/div[3]/div[2]/div[2]/ul[2]/li/span/text()");
 
-        xpathType.put(lawyerSimpleName+Lawyer.ALIAS_business_area,"/html/body/div[3]/div[2]/div[2]/div[1]/a/allText()");
-        xpathType.put(userSimpleName+User.ALIAS_area,"");
-        xpathType.put("remark","/body/div[5]/div[1]/div[3]/div/div[2]/text()");
+        //执业领域
+        xpathType.put(lawyerSimpleName+Lawyer.ALIAS_business_area,"/body/div[3]/div[2]/div[2]/div[1]/a/allText()");
+
+        //机构
+        xpathType.put(userSimpleName+User.ALIAS_institution,"//*[@id=\"introduce_main\"]/text()");
     }
 
     @Override
@@ -56,11 +87,14 @@ public class BtypeParseServiceImpl implements IParseService, InitializingBean {
         }
         Map<String,String > map = new HashMap() ;
         xpathType.forEach((k,v)->{
-            String oneByXPath = XpathUtils.getOneByXPath(htmlContent, v);
-            map.put(k,oneByXPath);
-            log.info("{}:{}",k, oneByXPath);
-        });
+            log.info("k：{} v:{}",k, v);
 
+            String oneByXPath = XpathUtils.getOneByXPath(htmlContent, v);
+            String result = nameDual(k, oneByXPath);
+
+            map.put(k,result);
+            log.info("{}:{}",k, result);
+        });
         return map;
     }
 
