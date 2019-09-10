@@ -23,8 +23,8 @@ public class GenDO {
 
         sqlManger.genALL("com.icourt.lawyercrawlparse.entity", new GenConfig(), new GenFilter() {
             public boolean accept(String tableName) {
-//                if (tableName.equalsIgnoreCase("lawyer")||tableName.equalsIgnoreCase("user")) {
-                if (tableName.equalsIgnoreCase("kafka_lawyer")) {
+                if (tableName.equalsIgnoreCase("lawyer")||tableName.equalsIgnoreCase("user")) {
+//                if (tableName.equalsIgnoreCase("kafka_lawyer")) {
                     return true;
                 } else {
                     return false;

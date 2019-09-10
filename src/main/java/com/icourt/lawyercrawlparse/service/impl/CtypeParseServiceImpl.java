@@ -1,5 +1,7 @@
 package com.icourt.lawyercrawlparse.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.icourt.lawyercrawlparse.entity.KafkaLawyer;
 import com.icourt.lawyercrawlparse.entity.Lawyer;
 import com.icourt.lawyercrawlparse.entity.User;
 import com.icourt.lawyercrawlparse.service.IParseService;
@@ -11,8 +13,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 解析类
@@ -30,24 +33,99 @@ public class CtypeParseServiceImpl implements IParseService, InitializingBean {
         dualtypeMap();
     }
 
-    private void dualtypeMap() {
+
+    private String nameDual (String key,String value){
         String userSimpleName = User.class.getSimpleName();
         String lawyerSimpleName = Lawyer.class.getSimpleName();
 
-        xpathType.put(userSimpleName+User.ALIAS_name,"/body/div[2]/div[3]/div[1]/h1/text()");
-        xpathType.put(userSimpleName+User.ALIAS_mobile_phone,"/html/body/div[3]/ul/li[8]/p/span/text()");
-//        xpathType.put(userSimpleName+User.ALIAS_position,"//*[@id=\"j-main-left\"]/ul/li[3]/span[2]/text()");
-        xpathType.put(userSimpleName+User.ALIAS_institution,"/body/div[2]/div[3]/div[2]/p[1]/text()");
+        String userName= userSimpleName+User.ALIAS_name;
+        if(StringUtils.equalsAnyIgnoreCase(key,userName)){
+            String  name = StringUtils.replace(value, "律师", "");
+            return name;
+        }
 
-        xpathType.put(lawyerSimpleName+Lawyer.ALIAS_license_number,"/body/div[2]/div[3]/div[2]/p[2]/text()");
-//        xpathType.put(userSimpleName+User.ALIAS_email,"//*[@id=\"j-main-left\"]/ul/li[6]/span[2]/text()");
-//        xpathType.put(userSimpleName+User.ALIAS_address,"//*[@id=\"j-main-left\"]/ul/li[7]/span[2]/text()");
-
-//        xpathType.put(lawyerSimpleName+Lawyer.ALIAS_business_area,"/text()");
-        xpathType.put(userSimpleName+User.ALIAS_area,"/html/body/div[2]/div[3]/div[2]/p[3]/span/allText()");
-        xpathType.put("remark","/body/div[4]/div[2]/div[1]/div/p[2]/span/span/text()");
+        String province= userSimpleName+User.ALIAS_province;
+        if(StringUtils.equalsAnyIgnoreCase(key,province)){
+            String  name = StringUtils.replace(value, "服务地区：", "");
+            return name;
+        }
+        return value;
     }
 
+    private void dualtypeMap() {
+        String userSimpleName = User.class.getSimpleName();
+        String lawyerSimpleName = Lawyer.class.getSimpleName();
+        //姓名
+        xpathType.put(userSimpleName+User.ALIAS_name,"/body/div[2]/div[3]/div[1]/h1/text()");
+        //头像
+        xpathType.put(userSimpleName+User.ALIAS_headimgurl,"/body/div[2]/div[3]/div[1]/img/@src");
+
+        //机构名称
+        xpathType.put(userSimpleName+User.ALIAS_institution,"/body/div[2]/div[3]/div[2]/p[1]/text()");
+
+        //手机号
+        xpathType.put(userSimpleName+User.ALIAS_mobile_phone,"/body/div[3]/ul/li[8]/p/span/text()");
+
+        //需要处理 省份  todo
+        xpathType.put(userSimpleName+User.ALIAS_province,"/body/div[2]/div[3]/div[3]/p[2]/span/text()");
+
+        //introduction 个人简介
+        xpathType.put(userSimpleName+User.ALIAS_introduction,"/html/body/div[4]/div[2]/div[1]/div/allText()");
+
+        //执业证号
+        xpathType.put(lawyerSimpleName+Lawyer.ALIAS_license_number,"/body/div[2]/div[3]/div[2]/p[2]/text()");
+
+        //执业领域
+        xpathType.put(userSimpleName+User.ALIAS_area,"/html/body/div[2]/div[3]/div[2]/p[3]/span/allText()");
+    }
+
+    @Override
+    public Map parse(KafkaLawyer entity,String htmlContent) throws  Exception {
+        if(!support(htmlContent)){
+            return new HashMap();
+        }
+        Map parse = this.parse(htmlContent);
+
+        String userSimpleName = User.class.getSimpleName();
+        String lawyerSimpleName = Lawyer.class.getSimpleName();
+        Map userMap = new HashMap();
+        Set<String> strings = xpathType.keySet();
+
+        //用户的
+        List<String> users = strings.stream().filter(e -> StringUtils.startsWith(e, userSimpleName)).collect(Collectors.toList());
+
+        //律所的
+        List<String> lays = strings.stream().filter(e -> StringUtils.startsWith(e, lawyerSimpleName)).collect(Collectors.toList());
+
+        users.forEach(e->{
+            String replace = StringUtils.replace(e, userSimpleName, "");
+            userMap.put(replace,parse.get(e));
+        });
+
+        Map layMap = new HashMap();
+
+        lays.forEach(e->{
+            String replace = StringUtils.replace(e, lawyerSimpleName, "");
+            layMap.put(replace,parse.get(e));
+        });
+
+
+        User user = JSON.parseObject(JSON.toJSONString(userMap), User.class);
+        user.setBaseId(entity.getId());
+        user.setInsId(entity.getId());
+        user.setScore(BigDecimal.ZERO);
+
+        Lawyer lawyer = JSON.parseObject(JSON.toJSONString(layMap), Lawyer.class);
+        lawyer.setBaseId(entity.getId());
+        lawyer.setInsId(entity.getId());
+
+        log.info("解析：{} 用户：{}",entity.getId(),user);
+        log.info("解析: {} 律师：{}",entity.getId(),lawyer);
+
+        sqlManager.insert(user);
+        sqlManager.insert(lawyer);
+        return parse;
+    }
 
     @Override
     public Map parse(String htmlContent) throws  Exception {
@@ -56,9 +134,13 @@ public class CtypeParseServiceImpl implements IParseService, InitializingBean {
         }
         Map<String,String > map = new HashMap() ;
         xpathType.forEach((k,v)->{
+            log.info("k：{} v:{}",k, v);
+
             String oneByXPath = XpathUtils.getOneByXPath(htmlContent, v);
-            map.put(k,oneByXPath);
-            log.info("{}:{}",k, oneByXPath);
+            String result = nameDual(k, oneByXPath);
+
+            map.put(k,result);
+            log.info("{}:{}",k, result);
         });
 
         return map;

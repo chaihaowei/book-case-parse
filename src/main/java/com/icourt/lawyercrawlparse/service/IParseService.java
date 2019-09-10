@@ -1,6 +1,8 @@
 package com.icourt.lawyercrawlparse.service;
 
 
+import com.icourt.lawyercrawlparse.entity.KafkaLawyer;
+
 import java.util.Map;
 
 /**
@@ -13,6 +15,9 @@ import java.util.Map;
 public interface IParseService {
 
     Map parse(String htmlContent) throws Exception;
+
+    Map parse(KafkaLawyer entity,String htmlContent) throws Exception;
+
 
     boolean support(String htmlContent) throws  Exception;
 }

@@ -17,7 +17,7 @@ public class ReceiverToDb {
     public void toDb(String recode, String message) {
         KafkaLawyer lawyer = new KafkaLawyer();
         lawyer.setMessage(message);
-        lawyer.setRecord(recode);
+//        lawyer.setRecord(recode);
         sqlManager.insert(lawyer);
     }
 }

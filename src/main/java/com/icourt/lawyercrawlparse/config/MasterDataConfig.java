@@ -1,5 +1,6 @@
 package com.icourt.lawyercrawlparse.config;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import org.beetl.sql.core.*;
 import org.beetl.sql.core.db.DBStyle;
@@ -21,11 +22,11 @@ public class MasterDataConfig {
     public  DataSource alphaDataSource() {
         String court_info_url = "jdbc:mysql://localhost:3306/matter_case?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true";
         String court_info_username = "root";
-        MysqlDataSource ds = new MysqlDataSource();
-        ds.setURL(court_info_url);
-        ds.setUser(court_info_username);
-        ds.setPassword(court_info_username);
-        return ds;
+        DruidDataSource druidDataSource = new DruidDataSource();
+        druidDataSource.setUrl(court_info_url);
+        druidDataSource.setUsername(court_info_username);
+        druidDataSource.setPassword(court_info_username);
+        return druidDataSource;
     }
 
     @Bean(name ="sqlManger")

@@ -1,5 +1,7 @@
 package com.icourt.lawyercrawlparse.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.icourt.lawyercrawlparse.entity.KafkaLawyer;
 import com.icourt.lawyercrawlparse.entity.Lawyer;
 import com.icourt.lawyercrawlparse.entity.User;
 import com.icourt.lawyercrawlparse.service.IParseService;
@@ -11,9 +13,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 解析类
@@ -50,6 +52,53 @@ public class BtypeParseServiceImpl implements IParseService, InitializingBean {
         return value;
 
     }
+    @Override
+    public Map parse(KafkaLawyer entity,String htmlContent) throws  Exception {
+        if(!support(htmlContent)){
+            return new HashMap();
+        }
+        Map parse = this.parse(htmlContent);
+
+        String userSimpleName = User.class.getSimpleName();
+        String lawyerSimpleName = Lawyer.class.getSimpleName();
+        Map userMap = new HashMap();
+        Set<String> strings = xpathType.keySet();
+
+        //用户的
+        List<String> users = strings.stream().filter(e -> StringUtils.startsWith(e, userSimpleName)).collect(Collectors.toList());
+
+        //律所的
+        List<String> lays = strings.stream().filter(e -> StringUtils.startsWith(e, lawyerSimpleName)).collect(Collectors.toList());
+
+        users.forEach(e->{
+            String replace = StringUtils.replace(e, userSimpleName, "");
+            userMap.put(replace,parse.get(e));
+        });
+
+        Map layMap = new HashMap();
+
+        lays.forEach(e->{
+            String replace = StringUtils.replace(e, lawyerSimpleName, "");
+            layMap.put(replace,parse.get(e));
+        });
+
+
+        User user = JSON.parseObject(JSON.toJSONString(userMap), User.class);
+        user.setBaseId(entity.getId());
+        user.setInsId(entity.getId());
+        user.setScore(BigDecimal.ZERO);
+
+        Lawyer lawyer = JSON.parseObject(JSON.toJSONString(layMap), Lawyer.class);
+        lawyer.setBaseId(entity.getId());
+        lawyer.setInsId(entity.getId());
+
+        log.info("解析：{} 用户：{}",entity.getId(),user);
+        log.info("解析: {} 律师：{}",entity.getId(),lawyer);
+
+        sqlManager.insert(user);
+        sqlManager.insert(lawyer);
+        return parse;
+    }
 
     private void dualtypeMap() {
         String userSimpleName = User.class.getSimpleName();
@@ -67,17 +116,18 @@ public class BtypeParseServiceImpl implements IParseService, InitializingBean {
         //职务？ todo
         xpathType.put(userSimpleName+User.ALIAS_position,"//*[@id=\"j-main-left\"]/ul/li[3]/span[2]/text()");
 
-        //机构名称
+        //机构名称 /html/body/div[3]/div[2]/div[1]/div[2]/p
         xpathType.put(userSimpleName+User.ALIAS_institution,"/body/div[3]/div[2]/div[2]/ul[1]/li[2]/span/text()");
+
+        //个人简介
+        xpathType.put(userSimpleName+User.ALIAS_introduction,"/body/div[3]/div[2]/div[1]/div[2]/p/text()");
+
 
         //机构地址
         xpathType.put(userSimpleName+User.ALIAS_address,"/body/div[3]/div[2]/div[2]/ul[2]/li/span/text()");
 
         //执业领域
         xpathType.put(lawyerSimpleName+Lawyer.ALIAS_business_area,"/body/div[3]/div[2]/div[2]/div[1]/a/allText()");
-
-        //机构
-        xpathType.put(userSimpleName+User.ALIAS_institution,"//*[@id=\"introduce_main\"]/text()");
     }
 
     @Override

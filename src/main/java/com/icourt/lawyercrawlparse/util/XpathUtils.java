@@ -8,6 +8,8 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 @Slf4j
 public class XpathUtils {
@@ -38,6 +40,19 @@ public class XpathUtils {
         }
         List<String> collect = rs.stream().map(e -> e.toString()).collect(Collectors.toList());
         return collect;
+    }
+
+
+
+    private String underLineToCamel(String str) {
+        Matcher matcher = Pattern.compile("_(\\w)").matcher(str);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, matcher.group(1).toUpperCase());
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+
     }
 
 
