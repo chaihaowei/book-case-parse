@@ -67,6 +67,12 @@ public class AtypeParseServiceImpl implements IParseService, InitializingBean {
             return null;
         }
 
+        if(StringUtils.equalsAnyIgnoreCase(key,userSimpleName+User.ALIAS_headimgurl)){
+            String  name = StringUtils.replace(value, "//", "");
+            return name;
+        }
+
+
         if(StringUtils.equalsAnyIgnoreCase(key,userSimpleName+User.ALIAS_area)){
             String  name = StringUtils.replace(value, "所在地区：", "");
             return name;
