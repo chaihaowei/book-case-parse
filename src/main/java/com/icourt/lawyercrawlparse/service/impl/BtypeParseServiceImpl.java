@@ -49,6 +49,18 @@ public class BtypeParseServiceImpl implements IParseService, InitializingBean {
             return name;
         }
 
+        if(StringUtils.equalsAnyIgnoreCase(key,lawyerSimpleName+Lawyer.ALIAS_license_number)){
+            if(StringUtils.startsWith(value,"执业律师（律师证编号：")){
+                String replace;
+                replace = StringUtils.replace(value, "执业律师（律师证编号：","");
+                replace = StringUtils.replace(replace, "）","");
+                return replace;
+            }else{
+                return null;
+            }
+        }
+
+
         return value;
 
     }
@@ -120,7 +132,7 @@ public class BtypeParseServiceImpl implements IParseService, InitializingBean {
         xpathType.put(userSimpleName+User.ALIAS_institution,"/body/div[3]/div[2]/div[2]/ul[1]/li[2]/span/text()");
 
         //个人简介
-        xpathType.put(userSimpleName+User.ALIAS_introduction,"/body/div[3]/div[2]/div[1]/div[2]/p/text()");
+        xpathType.put(userSimpleName+User.ALIAS_introduction,"//*[@id=\"introduce_main\"]/text()");
 
 
         //机构地址
@@ -128,6 +140,10 @@ public class BtypeParseServiceImpl implements IParseService, InitializingBean {
 
         //执业领域
         xpathType.put(lawyerSimpleName+Lawyer.ALIAS_business_area,"/body/div[3]/div[2]/div[2]/div[1]/a/allText()");
+
+        //执业证号
+        xpathType.put(lawyerSimpleName+Lawyer.ALIAS_license_number,"/body/div[3]/div[2]/div[2]/ul[1]/li[1]/span/text()");
+
     }
 
     @Override
