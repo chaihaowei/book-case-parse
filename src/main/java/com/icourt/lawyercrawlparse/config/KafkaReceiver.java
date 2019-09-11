@@ -16,7 +16,7 @@ public class KafkaReceiver {
     @Autowired
     private ReceiverToDb receiverToDb;
 
-    @KafkaListener(topics = {"lawtime_pro_topic"})
+  /*  @KafkaListener(topics = {"lawtime_pro_topic"})
     public void listen(ConsumerRecord<?, ?> record) {
         Optional<?> kafkaMessage = Optional.ofNullable(record.value());
         if (kafkaMessage.isPresent()) {
@@ -28,5 +28,5 @@ public class KafkaReceiver {
                 receiverToDb.toDb(message.toString(), message.toString());
             }
         }
-    }
+    }*/
 }

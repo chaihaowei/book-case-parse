@@ -51,12 +51,12 @@ public class CtypeParseServiceImpl extends IAbstractParseService {
         xpathType.put(userSimpleName + User.ALIAS_province, "/body/div[2]/div[3]/div[3]/p[2]/span/text()");
 
         //introduction 个人简介
-        xpathType.put(userSimpleName + User.ALIAS_introduction, "/html/body/div[4]/div[2]/div[1]/div/allText()");
+        xpathType.put(userSimpleName + User.ALIAS_introduction, "/body/div[4]/div[2]/div[1]/div/allText()");
 
         //执业证号
         xpathType.put(lawyerSimpleName + Lawyer.ALIAS_license_number, "/body/div[2]/div[3]/div[2]/p[2]/text()");
 
         //执业领域
-        xpathType.put(userSimpleName + User.ALIAS_area, "/html/body/div[2]/div[3]/div[2]/p[3]/span/allText()");
+        xpathType.put(userSimpleName + User.ALIAS_area, "/body/div[2]/div[3]/div[2]/p[3]/span/allText()");
     }
 }

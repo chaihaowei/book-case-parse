@@ -53,13 +53,13 @@ public class DtypeParseServiceImpl extends IAbstractParseService {
         xpathType.put(userSimpleName + User.ALIAS_mobile_phone, "/body/div[4]/div[1]/div[1]/div[2]/ul/li[1]/text()");
 
         //邮箱
-        xpathType.put(userSimpleName + User.ALIAS_email, "/html/body/div[4]/div[1]/div[1]/div[2]/ul/li[3]/text()");
+        xpathType.put(userSimpleName + User.ALIAS_email, "/body/div[4]/div[1]/div[1]/div[2]/ul/li[3]/text()");
 
         //需要处理 省份
 //        xpathType.put(userSimpleName + User.ALIAS_province, "/body/div[2]/div/div[1]/div[2]/div[1]/text()");
 
         //需要处理 省份 城市
-        xpathType.put(userSimpleName + User.ALIAS_city, "/body/header/div/div/div[2]/span[1]/em/text()");
+//        xpathType.put(userSimpleName + User.ALIAS_city, "/body/header/div/div/div[2]/span[1]/em/text()");
         //introduction 个人简介
         xpathType.put(userSimpleName + User.ALIAS_introduction, "/body/div[4]/div[2]/div[2]/div/div[1]/text()");
 
