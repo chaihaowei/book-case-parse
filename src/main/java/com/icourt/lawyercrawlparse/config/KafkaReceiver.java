@@ -15,18 +15,18 @@ public class KafkaReceiver {
 
     @Autowired
     private ReceiverToDb receiverToDb;
-//
-//    @KafkaListener(topics = {"lawtime_topic"})
-//    public void listen(ConsumerRecord<?, ?> record) {
-//        Optional<?> kafkaMessage = Optional.ofNullable(record.value());
-//        if (kafkaMessage.isPresent()) {
-//            Object message = kafkaMessage.get();
-//
-//            log.info("record =" + record);
-//            log.info("message =" + message);
-//            if(Objects.nonNull(message)) {
-//                receiverToDb.toDb(message.toString(), message.toString());
-//            }
-//        }
-//    }
+
+    @KafkaListener(topics = {"lawtime_pro_topic"})
+    public void listen(ConsumerRecord<?, ?> record) {
+        Optional<?> kafkaMessage = Optional.ofNullable(record.value());
+        if (kafkaMessage.isPresent()) {
+            Object message = kafkaMessage.get();
+
+            log.info("record =" + record);
+            log.info("message =" + message);
+            if(Objects.nonNull(message)) {
+                receiverToDb.toDb(message.toString(), message.toString());
+            }
+        }
+    }
 }

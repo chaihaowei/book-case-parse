@@ -9,7 +9,7 @@ import org.beetl.sql.core.annotatoin.Table;
 * 
 * gen by beetlsql 2019-09-09
 */
-@Table(name="matter_case.kafka_lawyer_02")
+@Table(name="matter_case.kafka_lawyer_pro")
 public class KafkaLawyer   {
 	
 	// alias
