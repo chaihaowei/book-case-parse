@@ -42,18 +42,7 @@ public class ParseController {
     public void parse() throws Exception{
 
         KafkaLawyer kafkaLawyer =new KafkaLawyer();
-//        kafkaLawyer.setDateType("com.icourt.lawyercrawlparse.service.impl.BtypeParseServiceImpl");
-//        kafkaLawyer.setJsonContent("1");
-        List<KafkaLawyer> all = sqlManager.lambdaQuery(KafkaLawyer.class).orderBy(KafkaLawyer::getId).select();
-
-//        List<Integer> collect = Arrays.stream(ids.split(",")).filter(StringUtils::isNotBlank).map(e->{
-//            String trim = StringUtils.trim(e);
-//            return trim;
-//        }).map(Integer::valueOf).collect(Collectors.toList());
-//
-//        List<KafkaLawyer> all = sqlManager.query(KafkaLawyer.class).andIn(KafkaLawyer.ALIAS_id,collect).select();
-//
-
+        List<KafkaLawyer> all = sqlManager.lambdaQuery(KafkaLawyer.class).orderBy(KafkaLawyer::getId).select("id");
 
         ThreadPoolExecutor threadPoolExecutor = ThreadUtil.newExecutor(5, 10);
 
@@ -83,7 +72,10 @@ public class ParseController {
         }
     }
 
+
+
     private void execute(KafkaLawyer e) throws Exception {
+        e =sqlManager.unique(KafkaLawyer.class,e.getId());
         String message = e.getMessage();
         for (IParseService iParseService : parseService) {
             String html = JsonPath.parse(message).read("allTextHtml");

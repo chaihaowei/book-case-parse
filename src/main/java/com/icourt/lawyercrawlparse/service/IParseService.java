@@ -14,10 +14,13 @@ import java.util.Map;
  */
 public interface IParseService {
 
-    Map parse(String htmlContent) throws Exception;
-
+    /**
+     * 解析类
+     * @param entity  实体类
+     * @param htmlContent html
+     * @return  解析的map
+     * @throws Exception 异常
+     */
     Map parse(KafkaLawyer entity,String htmlContent) throws Exception;
 
-
-    boolean support(String htmlContent) throws  Exception;
 }

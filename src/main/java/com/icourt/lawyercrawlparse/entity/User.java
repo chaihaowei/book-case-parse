@@ -11,7 +11,7 @@ import org.beetl.sql.core.annotatoin.Table;
 * 
 * gen by beetlsql 2019-09-10
 */
-@Table(name="matter_case.user")
+@Table(name="matter_case.user_02")
 public class User   {
 	
 	// alias
