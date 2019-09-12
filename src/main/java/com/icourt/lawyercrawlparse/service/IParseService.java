@@ -11,6 +11,8 @@ import java.util.Map;
  *    http://www.lawtime.cn/lawyer/int951107956201   A                     -
  *     http://www.lawtime.cn/lawyer/id362028367122.html
  *     http://zhangkang.lawyer.lawtime.cn/int
+ *     http://zjf1998.lawyer.lawtime.cn/int
+ *     http://zhanghuijin.lawyer.lawtime.cn/int
  */
 public interface IParseService {
 
