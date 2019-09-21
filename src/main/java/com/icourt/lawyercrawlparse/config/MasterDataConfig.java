@@ -18,7 +18,7 @@ public class MasterDataConfig {
 
 
     @Primary
-    @Bean(name ="dataSource")
+    @Bean(name ="dataSource-beet")
     public  DataSource alphaDataSource() {
         String court_info_url = "jdbc:mysql://localhost:3306/matter_case?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true";
         String court_info_username = "root";
@@ -29,8 +29,9 @@ public class MasterDataConfig {
         return druidDataSource;
     }
 
+
     @Bean(name ="sqlManger")
-    public  SQLManager getSqlManger(@Qualifier("dataSource") DataSource dataSource){
+    public  SQLManager getSqlManger(@Qualifier("dataSource-beet") DataSource dataSource){
 
         ConnectionSource source = ConnectionSourceHelper.getSingle(dataSource);
         DBStyle mysql = new MySqlStyle();
