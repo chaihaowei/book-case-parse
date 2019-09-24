@@ -116,6 +116,7 @@ public class DsColumn implements Serializable {
         fsdt_crawl_wkinfo("威科法税动态爬取"),
 
         al_crawl_gongbao("公报案例爬取");
+
         private final String value;
 
         private SourceEnum(String value) {

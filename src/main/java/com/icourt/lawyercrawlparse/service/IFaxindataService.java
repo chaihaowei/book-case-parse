@@ -1,5 +1,9 @@
 package com.icourt.lawyercrawlparse.service;
 
+import com.icourt.lawyercrawlparse.entity.DsColumn;
+
+import java.util.List;
+
 /**
  * faxindata
  *
@@ -12,6 +16,6 @@ public interface IFaxindataService {
     /**
      * 转变为Ds结构
      */
-    void transToDs(String bookId);
+    List<DsColumn> transToDs(String bookId);
 
 }

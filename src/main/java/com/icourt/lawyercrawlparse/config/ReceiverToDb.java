@@ -3,6 +3,7 @@ package com.icourt.lawyercrawlparse.config;
 import com.icourt.lawyercrawlparse.entity.KafkaLawyer;
 import org.beetl.sql.core.SQLManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,6 +14,8 @@ public class ReceiverToDb {
     private SQLManager sqlManager;
 
 
+    @Autowired
+    private KafkaTemplate kafkaTemplate;
 
     public void toDb(String recode, String message) {
         KafkaLawyer lawyer = new KafkaLawyer();

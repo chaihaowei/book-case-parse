@@ -1,17 +1,23 @@
 package com.icourt.lawyercrawlparse.service.impl;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.format.DatePrinter;
 import cn.hutool.core.util.ReUtil;
+import cn.hutool.crypto.digest.DigestAlgorithm;
+import cn.hutool.crypto.digest.Digester;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.icourt.lawyercrawlparse.dao.FaxindataMapper;
+import com.icourt.lawyercrawlparse.entity.DsColumn;
 import com.icourt.lawyercrawlparse.entity.Faxindata;
 import com.icourt.lawyercrawlparse.service.IFaxindataService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.safety.Whitelist;
@@ -19,9 +25,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.net.DatagramSocket;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author chaihaowei
@@ -37,12 +43,16 @@ public class FaxindataServiceImpl implements IFaxindataService {
 
     private static final String filterd = "(公报案例)|(指导性案例)|(审判指导与参考)|(典型案例发布)|(域外撷英){1}";
 
+    //是否换行符
+    private static final String isPargN = "(\r\n|\r|\n|\n\r)";
+
+
     //公报案例、指导性案例、审判指导与参考、典型案例发布、域外撷英的内容均不用提取解析。
     @Autowired
     private FaxindataMapper faxindataMapper;
 
 
-    public  BiMap<String, List<Faxindata>> getCaseMap(String bookId){
+    public BiMap<String, List<Faxindata>> getCaseMap(String bookId) {
         LambdaQueryWrapper<Faxindata> faxindataLambdaQueryWrapper = new LambdaQueryWrapper<>();
         faxindataLambdaQueryWrapper.eq(Faxindata::getBookId, bookId);
         List<Faxindata> faxindata = faxindataMapper.selectList(faxindataLambdaQueryWrapper);
@@ -57,7 +67,6 @@ public class FaxindataServiceImpl implements IFaxindataService {
                 contins.add(next.getArticleId());
             }
         }
-
 
 
         //案件和具体段落对应表
@@ -117,11 +126,11 @@ public class FaxindataServiceImpl implements IFaxindataService {
             List<String> allGroup0 = ReUtil.findAllGroup0(filterd, k);
             if (!CollectionUtils.isEmpty(allGroup0)) {
                 v.forEach(map::remove);
-            }else{
+            } else {
                 for (String item : v) {
                     List<Faxindata> faxindata1 = map.get(item);
 
-                    if(!CollectionUtils.isEmpty(faxindata1)){
+                    if (!CollectionUtils.isEmpty(faxindata1)) {
                         for (Faxindata e : faxindata1) {
                             e.setCaseCode(k);
                         }
@@ -131,16 +140,17 @@ public class FaxindataServiceImpl implements IFaxindataService {
         });
         log.info("开始过滤掉不需要的案例 过滤后：{}", map.size());
 
-        map.forEach((k,v)->{
-            log.info("--------");
-            System.out.println(k);
-            v.forEach(item->{
-                System.out.println(item.getArticleTitle());
-                String text =Jsoup.clean(item.getArticleContent(), "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
-                String replace = text.replace("&nbsp;&nbsp;&nbsp;&nbsp;", "\n");
-                System.out.println(replace);
+        map.forEach((k, v) -> {
+            v.forEach(item -> {
+                String text = Jsoup.clean(item.getArticleContent(), "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
+                String replace = text;
+                if (StringUtils.startsWith(text, "&nbsp;&nbsp;&nbsp;&nbsp;")) {
+                    replace = StringUtils.replaceFirst(text, "&nbsp;&nbsp;&nbsp;&nbsp;", "");
+                }
+                replace = replace.replace("&nbsp;&nbsp;&nbsp;&nbsp;", "\n");
+                item.setArticleContent(replace);
+
             });
-          log.info("--------");
         });
 
         return map;
@@ -148,9 +158,72 @@ public class FaxindataServiceImpl implements IFaxindataService {
 
 
     @Override
-    public void transToDs(String bookId) {
+    public List<DsColumn> transToDs(String bookId) {
         BiMap<String, List<Faxindata>> caseMap = getCaseMap(bookId);
+        Set<String> strings = caseMap.keySet();
+
+
+        for (String e : strings) {
+            System.out.println("--------------start--------------------------------------start--------------------");
+            System.out.println(e);
+            List<Faxindata> list = MapUtils.getObject(caseMap, e);
+            if (!CollectionUtils.isEmpty(list)) {
+                for (Faxindata item : list) {
+                    String articleTitle = item.getArticleTitle();
+                    printlnIfnotBlank(articleTitle);
+                    String articleContent = item.getArticleContent();
+                    printlnIfnotBlank(articleContent);
+                }
+            }
+            System.out.println("--------------end--------------------------------------end--------------------");
+        }
+
+
+        List<DsColumn> resultList =Lists.newArrayList();
+        Digester md5 = new Digester(DigestAlgorithm.MD5);
+
+        caseMap.forEach((k,v)->{
+            String dsId ="";
+            dsId =dsId+v;
+            DsColumn column = new DsColumn();
+            HashMap<Object, Object> map = Maps.newHashMap();
+            map.put("caseName",k);
+            map.put("source_type",3);
+
+            map.put("caseEnumType",1);
+
+            column.setExt(JSON.toJSONString(map));
+            column.setRemark("全国优秀案例书籍");
+            column.setScore("50");
+
+            String collect = v.stream().map(e -> e.getArticleTitle() + "\n" + e.getArticleContent()).collect(Collectors.joining("\n"));
+            dsId =dsId+"#"+collect;
+            column.setText(collect);
+
+            String s = md5.digestHex(dsId);
+            column.setId(s);
+
+            column.setSource("1");
+            column.setPublishType("3");
+
+            Date date = new Date();
+            Long time = date.getTime();
+
+            column.setUploadtimestamp(time.toString());
+            System.out.println(JSON.toJSONString(column));
+            resultList.add(column);
+        });
+
 
         log.info("SUCCESS");
+        return resultList;
+    }
+
+
+
+    private void printlnIfnotBlank(String str) {
+        if (StringUtils.isNotBlank(str) || !ReUtil.isMatch(isPargN, StringUtils.trim(str))) {
+            System.out.println(str);
+        }
     }
 }
