@@ -20,7 +20,7 @@ public class MasterDataConfig {
     @Primary
     @Bean(name ="dataSource-beet")
     public  DataSource alphaDataSource() {
-        String court_info_url = "jdbc:mysql://localhost:3306/matter_case?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true";
+        String court_info_url = "jdbc:mysql://estest:3306/alpha_market?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true";
         String court_info_username = "root";
         DruidDataSource druidDataSource = new DruidDataSource();
         druidDataSource.setUrl(court_info_url);

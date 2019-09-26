@@ -16,7 +16,7 @@ spring:
         username: root
         password: root
         driver-class-name: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://localhost:3306/matter_case?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true
+        url: jdbc:mysql://estest:3306/alpha_market?useUnicode=true&amp;characterEncoding=utf8mb4;autoReconnect=true&amp;zeroDateTimeBehavior=convertToNull&amp;allowMultiQueries=true
 #      slave:
 #        one:
 #          username: root
