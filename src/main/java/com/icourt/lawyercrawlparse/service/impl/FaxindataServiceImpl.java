@@ -67,12 +67,6 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
 
 
 
-
-
-
-
-
-
     public BiMap<String, List<Faxindata>> getCaseMap(String bookId) {
         List<Faxindata> faxindata = getFaxindata(bookId);
 
@@ -102,8 +96,8 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
                 }
             }
         });
-        log.info("开始过滤掉不需要的案例 过滤后：{}", casePars.size());
 
+        log.info("开始过滤掉不需要的案例 过滤后：{}", casePars.size());
         casePars.forEach((k, v) -> {
             v.forEach(item -> {
                 String text = Jsoup.clean(item.getArticleContent(), "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
