@@ -17,6 +17,19 @@ spring:
         password: root
         driver-class-name: com.mysql.cj.jdbc.Driver
         url: jdbc:mysql://estest:3306/alpha_market?useUnicode=true&amp;characterEncoding=utf8mb4;autoReconnect=true&amp;zeroDateTimeBehavior=convertToNull&amp;allowMultiQueries=true
+
+logging:
+  level:
+    com.icourt.*: DEBUG
+#    org:
+#      docx4j:
+#        convert:
+#          out:
+#            common:
+#              writer:
+#                AbstractMessageWriter: error
+#    root: ERROR
+
 #      slave:
 #        one:
 #          username: root

@@ -1,7 +1,5 @@
 package com.icourt.lawyercrawlparse.service.impl;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.date.format.DatePrinter;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.crypto.digest.DigestAlgorithm;
 import cn.hutool.crypto.digest.Digester;
@@ -11,6 +9,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.icourt.lawyercrawlparse.dao.DsColumnMapper;
 import com.icourt.lawyercrawlparse.dao.FaxindataMapper;
 import com.icourt.lawyercrawlparse.entity.DsColumn;
 import com.icourt.lawyercrawlparse.entity.Faxindata;
@@ -27,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.net.DatagramSocket;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,7 +36,18 @@ import java.util.stream.Collectors;
 @Service
 public class FaxindataServiceImpl implements IFaxindataService, InitializingBean {
 
-    private List<String> caseLists= Lists.newArrayList();
+    //下一条开始是这个则这条为标题
+    private static final String contentSplit = "【";
+    private static final String annon = "[一二三四五六七八九]{1,10}、";
+    private static final String filterd = "(公报案例)|(指导性案例)|(审判指导与参考)|(典型案例发布)|(域外撷英){1}";
+    //是否换行符
+    private static final String isPargN = "(\r\n|\r|\n|\n\r)";
+    private List<String> caseLists = Lists.newArrayList();
+    @Autowired
+    private DsColumnMapper dsColumnMapper;
+    //公报案例、指导性案例、审判指导与参考、典型案例发布、域外撷英的内容均不用提取解析。
+    @Autowired
+    private FaxindataMapper faxindataMapper;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -49,23 +58,6 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
         caseLists.add("行政");
         caseLists.add("行政及国家赔偿");
     }
-
-    //下一条开始是这个则这条为标题
-    private static final String contentSplit = "【";
-
-    private static final String annon = "[一二三四五六七八九]{1,10}、";
-
-    private static final String filterd = "(公报案例)|(指导性案例)|(审判指导与参考)|(典型案例发布)|(域外撷英){1}";
-
-    //是否换行符
-    private static final String isPargN = "(\r\n|\r|\n|\n\r)";
-
-
-    //公报案例、指导性案例、审判指导与参考、典型案例发布、域外撷英的内容均不用提取解析。
-    @Autowired
-    private FaxindataMapper faxindataMapper;
-
-
 
     public BiMap<String, List<Faxindata>> getCaseMap(String bookId) {
         List<Faxindata> faxindata = getFaxindata(bookId);
@@ -97,6 +89,7 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
             }
         });
 
+
         log.info("开始过滤掉不需要的案例 过滤后：{}", casePars.size());
         casePars.forEach((k, v) -> {
             v.forEach(item -> {
@@ -116,13 +109,14 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
 
     /**
      * 处理案件段落 以及案由和段落
+     *
      * @param faxindata 数据源
-     * @param caseParh 案件段落
-     * @param caseMap  案件名称 和段落
+     * @param caseParh  案件段落
+     * @param caseMap   案件名称 和段落
      */
     private void dualCaseParhAndNameCase(List<Faxindata> faxindata, BiMap<String, List<Faxindata>> caseParh, BiMap<String, List<String>> caseMap) {
         //案件名称
-        String caseName =null;
+        String caseName = null;
         //案由名称
         String caseCodeName = null;
 
@@ -153,22 +147,22 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
 
                 //判断是不是注解
                 List<String> allGroup0 = ReUtil.findAllGroup0(annon, preNode.getArticleTitle());
-                if(!CollectionUtils.isEmpty(allGroup0)){
-                    int prePre =i-2;
-                    if(prePre>=0){
+                if (!CollectionUtils.isEmpty(allGroup0)) {
+                    int prePre = i - 2;
+                    if (prePre >= 0) {
                         Faxindata prePreNode = faxindata.get(prePre);
                         String prePreNodeArticleTitle = prePreNode.getArticleTitle();
                         List<String> allGroup1 = ReUtil.findAllGroup0(annon, prePreNodeArticleTitle);
                         //如果为空 就是案由
-                        if(CollectionUtils.isEmpty(allGroup1)){
-                            caseCodeName =preNode.getArticleTitle();
+                        if (CollectionUtils.isEmpty(allGroup1)) {
+                            caseCodeName = preNode.getArticleTitle();
                         }
                     }
-                }else{
+                } else {
                     //判断不是标注
                     List<String> allGroup01 = ReUtil.findAllGroup0(contentSplit, preNode.getArticleTitle());
-                    if(CollectionUtils.isEmpty(allGroup01)){
-                        caseCodeName =preNode.getArticleTitle();
+                    if (CollectionUtils.isEmpty(allGroup01)) {
+                        caseCodeName = preNode.getArticleTitle();
                     }
                 }
                 List<String> cases = MapUtils.getObject(caseMap, caseCodeName, Lists.newArrayList());
@@ -194,12 +188,13 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
 
     /**
      * 获取去重之后的book
+     *
      * @param bookId
      * @return
      */
     private List<Faxindata> getFaxindata(String bookId) {
         LambdaQueryWrapper<Faxindata> faxindataLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        faxindataLambdaQueryWrapper.eq(Faxindata::getBookId, bookId);
+//        faxindataLambdaQueryWrapper.eq(Faxindata::getBookId, bookId);
         List<Faxindata> faxindata = faxindataMapper.selectList(faxindataLambdaQueryWrapper);
         ArrayList<String> contins = Lists.newArrayList();
 
@@ -221,7 +216,6 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
         BiMap<String, List<Faxindata>> caseMap = getCaseMap(bookId);
         Set<String> strings = caseMap.keySet();
 
-
         for (String e : strings) {
             System.out.println("--------------start--------------------------------------start--------------------");
             System.out.println(e);
@@ -238,26 +232,27 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
         }
 
 
-        List<DsColumn> resultList =Lists.newArrayList();
+        List<DsColumn> resultList = Lists.newArrayList();
         Digester md5 = new Digester(DigestAlgorithm.MD5);
 
-        caseMap.forEach((k,v)->{
-            String dsId ="";
-            dsId =dsId+v;
+        caseMap.forEach((k, v) -> {
+            String dsId = "";
+            dsId = dsId + v;
             DsColumn column = new DsColumn();
             HashMap<Object, Object> map = Maps.newHashMap();
-            map.put("caseName",k);
-            map.put("source_type",3);
+            map.put("caseName", k);
+            map.put("source_type", 3);
 
-            map.put("caseEnumType",1);
-            map.put(JudgementExt.textCause,v.stream().findFirst().orElse(new Faxindata()).getCaseCode());
+            map.put("caseEnumType", 1);
+            map.put(JudgementExt.textCause, v.stream().findFirst().orElse(new Faxindata()).getCaseCode());
 
             column.setExt(JSON.toJSONString(map));
             column.setRemark("全国优秀案例书籍");
             column.setScore("50");
+            column.setSource("al_crawl_courtal");
 
             String collect = v.stream().map(e -> e.getArticleTitle() + "\n" + e.getArticleContent()).collect(Collectors.joining("\n"));
-            dsId =dsId+"#"+collect;
+            dsId = dsId + "#" + collect;
             column.setText(collect);
 
             String s = md5.digestHex(dsId);
@@ -274,11 +269,12 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
             resultList.add(column);
         });
 
-
+        resultList.forEach(e -> {
+            dsColumnMapper.insert(e);
+        });
         log.info("SUCCESS");
         return resultList;
     }
-
 
 
     private void printlnIfnotBlank(String str) {
