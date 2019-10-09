@@ -8,9 +8,9 @@
         <version>2.0.4.RELEASE</version>
     </parent>
     <groupId>com.icourt</groupId>
-    <artifactId>lawyer-crawl-parse</artifactId>
+    <artifactId>book-crawl-parse</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>lawyer-crawl-parse</name>
+    <name>book-crawl-parse</name>
     <description>Demo project for Spring Boot</description>
 
     <properties>
