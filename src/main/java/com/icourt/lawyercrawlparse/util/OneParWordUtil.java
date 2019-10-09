@@ -11,31 +11,27 @@ import com.icourt.lawyercrawlparse.entity.DsColumn;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.docx4j.Docx4J;
-import org.docx4j.XmlUtils;
 import org.docx4j.convert.out.HTMLSettings;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
-import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
-import org.docx4j.wml.Tbl;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.safety.Whitelist;
 
-import javax.xml.bind.JAXBElement;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.*;
 
 @Slf4j
-public class WordUtil {
-    public static String replaceStr="\n" +
+public class OneParWordUtil {
+    public static String replaceStr = "\n" +
             "\n" +
             "  \n" +
             "  \n" +
             "  \n" +
             "  TO HIDE THESE MESSAGES, TURN OFF debug level logging for org.docx4j.convert.out.common.writer.AbstractMessageWriter ";
 
-    private static String convertDocx2Txt(String path) throws Exception {
+    public static String convertDocx2Txt(String path) throws Exception {
         File templateFile = new File(path);
         //设置读取ooxml
         WordprocessingMLPackage wordMLPackage = WordprocessingMLPackage.load(templateFile);
@@ -47,11 +43,11 @@ public class WordUtil {
         String str = baos.toString();
 
         //过滤table标签
-        Whitelist whitelist = new Whitelist().addTags("table", "tbody", "td", "tr");
+        Whitelist whitelist = new Whitelist().addTags("table", "tbody", "td", "tr","img");
         String clean = Jsoup.clean(str, "", whitelist, new Document.OutputSettings().prettyPrint(false));
 //        clean = clean.replace(" ", "");
         clean = clean.replace("&nbsp;", "\n");
-        clean =clean.replace(replaceStr,"");
+        clean = clean.replace(replaceStr, "");
         //输出
         println(clean);
         return clean;
@@ -74,14 +70,14 @@ public class WordUtil {
         CaseTypeEnum[] values = CaseTypeEnum.values();
         List<CaseTypeEnum> caseTypeEnums = Arrays.asList(values);
 
-        List<File> files = FileUtil.loopFiles("/Users/chaihaowei/bookParse/parse",fileFilter);
+        List<File> files = FileUtil.loopFiles("/Users/chaihaowei/bookParse/parse", fileFilter);
 
-        List<DsColumn>  dsColumnList =Lists.newArrayList();
+        List<DsColumn> dsColumnList = Lists.newArrayList();
         for (File e : files) {
             log.info(FileUtil.getAbsolutePath(e));
             log.info(FileUtil.getName(e));
             String absolutePath = FileUtil.getAbsolutePath(e);
-            Integer caseType =null;
+            Integer caseType = null;
             for (CaseTypeEnum caseTypeEnum : caseTypeEnums) {
                 int i = absolutePath.indexOf(caseTypeEnum.getDesc());
                 if (i >= 0) {
@@ -89,12 +85,13 @@ public class WordUtil {
                 }
             }
             String name = FileUtil.getName(e);
-            DsColumn column = wordToBean(e.getAbsolutePath(), StringUtils.substring(name,0, StringUtils.indexOf(name,".")), caseType);
+            DsColumn column = wordToBean(e.getAbsolutePath(), StringUtils.substring(name, 0, StringUtils.indexOf(name, ".")), caseType);
             dsColumnList.add(column);
         }
         return dsColumnList;
     }
-    public static DsColumn wordToBean(String path,String caseName,Integer caseType) throws Exception {
+
+    public static DsColumn wordToBean(String path, String caseName, Integer caseType) throws Exception {
         Digester md5 = new Digester(DigestAlgorithm.MD5);
 
         DsColumn column = new DsColumn();
@@ -103,7 +100,7 @@ public class WordUtil {
         map.put("caseName", caseName);
         map.put("source_type", 3);
         map.put("caseEnumType", 1);
-        if(Objects.nonNull(caseType)) {
+        if (Objects.nonNull(caseType)) {
             map.put("caseType", caseType);
         }
         column.setPublishType("3");
@@ -122,7 +119,7 @@ public class WordUtil {
     public static void main(String[] args) throws Exception {
 //        convertDocx2Txt();
         List<DsColumn> dsColumns = filePathToBean();
-        dsColumns.forEach(e->{
+        dsColumns.forEach(e -> {
             println(JSON.toJSONString(e));
         });
 
