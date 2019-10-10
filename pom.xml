@@ -162,7 +162,48 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <dependency>
+            <groupId>com.aspose</groupId>
+            <artifactId>aspose-words</artifactId>
+            <version>15.8.1</version>
+            <classifier>jdk16</classifier>
+        </dependency>
+
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>icourt-snapshot</id>
+            <url>https://nexus3.alphalawyer.cn/repository/icourt-snapshots/</url>
+        </repository>
+        <repository>
+            <id>icourt-release</id>
+            <url>https://nexus3.alphalawyer.cn/repository/icourt-release/</url>
+        </repository>
+        <repository>
+            <id>AsposeJavaAPI</id>
+            <name>Aspose Java API</name>
+            <url>https://repository.aspose.com/repo/</url>
+        </repository>
+        <repository>
+            <id>alimaven</id>
+            <name>aliyun maven</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+        </repository>
+        <repository>
+            <id>mvnrepository</id>
+            <url>http://repo1.maven.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+    </repositories>
+
+
+
+
 
     <build>
         <plugins>

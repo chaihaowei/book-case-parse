@@ -40,7 +40,7 @@ public class OneParWordUtil {
             "  TO HIDE THESE MESSAGES, TURN OFF debug level logging for org.docx4j.convert.out.common.writer.AbstractMessageWriter ";
 
     public static String convertDocx2Txt(String path) throws Exception {
-        File templateFile = new File(path);
+        File templateFile = Doc2Docx.getFile(path);
         //设置读取ooxml
         WordprocessingMLPackage wordMLPackage = WordprocessingMLPackage.load(templateFile);
         HTMLSettings htmlSettings = Docx4J.createHTMLSettings();
@@ -72,14 +72,13 @@ public class OneParWordUtil {
             @Override
             public boolean accept(File pathname) {
                 String name = pathname.getName();
-                return StringUtils.endsWith(name, "docx");
+                return StringUtils.endsWith(name, "docx")||StringUtils.endsWith(name, "doc");
             }
         };
         CaseTypeEnum[] values = CaseTypeEnum.values();
         List<CaseTypeEnum> caseTypeEnums = Arrays.asList(values);
 
         List<File> files = FileUtil.loopFiles("/Users/chaihaowei/bookParse/parse", fileFilter);
-
         List<DsColumn> dsColumnList = Lists.newArrayList();
         for (File e : files) {
             log.info(FileUtil.getAbsolutePath(e));
