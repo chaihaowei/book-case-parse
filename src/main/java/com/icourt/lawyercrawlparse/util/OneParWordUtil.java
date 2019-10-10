@@ -40,15 +40,15 @@ public class OneParWordUtil {
             "  TO HIDE THESE MESSAGES, TURN OFF debug level logging for org.docx4j.convert.out.common.writer.AbstractMessageWriter ";
 
     public static String convertDocx2Txt(String path) throws Exception {
-        File templateFile = Doc2Docx.getFile(path);
-        //设置读取ooxml
-        WordprocessingMLPackage wordMLPackage = WordprocessingMLPackage.load(templateFile);
-        HTMLSettings htmlSettings = Docx4J.createHTMLSettings();
-        htmlSettings.setWmlPackage(wordMLPackage);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        //转换为html
-        Docx4J.toHTML(htmlSettings, baos, Docx4J.FLAG_NONE);
-        String str = baos.toString();
+//        File templateFile = Doc2Docx.getFile(path);
+//        //设置读取ooxml
+//        WordprocessingMLPackage wordMLPackage = WordprocessingMLPackage.load(templateFile);
+//        HTMLSettings htmlSettings = Docx4J.createHTMLSettings();
+//        htmlSettings.setWmlPackage(wordMLPackage);
+//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//        //转换为html
+//        Docx4J.toHTML(htmlSettings, baos, Docx4J.FLAG_NONE);
+        String str = Doc2Docx.parseWord2Html(path);
 
         //过滤table标签
         Whitelist whitelist = new Whitelist().addTags("table", "tbody", "td", "tr","img");

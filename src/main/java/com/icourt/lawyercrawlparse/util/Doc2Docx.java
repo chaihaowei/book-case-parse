@@ -2,11 +2,11 @@ package com.icourt.lawyercrawlparse.util;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
-import com.aspose.words.Document;
-import com.aspose.words.License;
+import com.aspose.words.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 @Slf4j
@@ -44,12 +44,37 @@ public class Doc2Docx {
             FileUtil.mkdir(tmp);
         }
         String path =tmp+"/"+s+DOCX;
-
         Document doc = new Document(soucePath);
         doc.save(path);
         log.info("tmp file path:{}",path);
         File file = FileUtil.newFile(path);
         return file;
+    }
+
+
+    public static String parseWord2Html(String soucePath) throws Exception {
+        if(!getLicense()){
+            throw new RuntimeException("license 验证失败");
+        }
+        try {
+            Document doc = new Document(soucePath);
+            HtmlSaveOptions saveOptions = new HtmlSaveOptions();
+            // HtmlSaveOptions的其他设置信息请参考相关API
+            saveOptions.setExportHeadersFootersMode(ExportHeadersFootersMode.NONE);
+            //设置转换html 图片格式我base64
+            saveOptions.setExportImagesAsBase64(Boolean.TRUE);
+            ByteArrayOutputStream htmlStream = new ByteArrayOutputStream();
+            String htmlText = "";
+            doc.save(htmlStream, saveOptions);
+            htmlText = new String(htmlStream.toByteArray(),"UTF-8");
+            htmlStream.close();
+            return htmlText;
+        }catch (Exception ex){
+            log.error("error path:{}",soucePath);
+            log.error("转换html 出错：",ex);
+            throw ex;
+        }
+
     }
 
 
