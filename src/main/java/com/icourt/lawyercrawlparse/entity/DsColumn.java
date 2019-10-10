@@ -18,7 +18,7 @@ public class DsColumn implements Serializable {
     private String modifier;
     private String modifytype;
     /**
-     * 对于案例：0=普通案例,1=公报案例，2=指导案例
+     * 对于案例：0=普通案例,1=公报案例，2=指导案例、 3优秀案例评选
      */
     private String publishType;
 

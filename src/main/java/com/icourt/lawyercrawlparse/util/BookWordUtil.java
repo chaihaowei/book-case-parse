@@ -8,6 +8,9 @@ import org.springframework.util.CollectionUtils;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * ocr版书 案例籍解析类
+ */
 public class BookWordUtil {
 
     private static final String caseSpilt="(^([.]?))[0-9]{1,3}.*案$";

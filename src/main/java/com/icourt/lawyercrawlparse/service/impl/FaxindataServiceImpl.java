@@ -15,6 +15,7 @@ import com.icourt.lawyercrawlparse.entity.DsColumn;
 import com.icourt.lawyercrawlparse.entity.Faxindata;
 import com.icourt.lawyercrawlparse.entity.JudgementExt;
 import com.icourt.lawyercrawlparse.service.IFaxindataService;
+import com.icourt.lawyercrawlparse.util.DsUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -35,6 +37,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class FaxindataServiceImpl implements IFaxindataService, InitializingBean {
+
+    //严格的案号正则，若提不到，则取标签
+    private static final Pattern CASE_NUMBER_STRICT_PATTERN = Pattern.compile("(案号[：:])?([\\[\\(〔（][O０１２３４５６７８９0-9]{3,4}[）\\)〕\\]].{1,15}[O０１２３４５６７８９0-9\\-、之零一二三四五六七八九十]{1,12}号([之|其|\\-]?[O０１２３４５６７８９0-9零一二三四五六七八九十]{0,3}))");
 
     //下一条开始是这个则这条为标题
     private static final String contentSplit = "【";
@@ -236,10 +241,9 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
         Digester md5 = new Digester(DigestAlgorithm.MD5);
 
         caseMap.forEach((k, v) -> {
-            String dsId = "";
-            dsId = dsId + v;
+
             DsColumn column = new DsColumn();
-            HashMap<Object, Object> map = Maps.newHashMap();
+            HashMap<String, Object> map = Maps.newHashMap();
             map.put("caseName", k);
             map.put("source_type", 3);
 
@@ -247,16 +251,23 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
             map.put(JudgementExt.textCause, v.stream().findFirst().orElse(new Faxindata()).getCaseCode());
 
             column.setExt(JSON.toJSONString(map));
-            column.setRemark("全国优秀案例书籍");
+            if(!CollectionUtils.isEmpty(v)) {
+                column.setRemark(v.get(0).getBookTitle());
+            }
             column.setScore("50");
             column.setSource("al_crawl_courtal");
 
             String collect = v.stream().map(e -> e.getArticleTitle() + "\n" + e.getArticleContent()).collect(Collectors.joining("\n"));
-            dsId = dsId + "#" + collect;
+
+            List<String> allGroup0 = ReUtil.findAllGroup0(CASE_NUMBER_STRICT_PATTERN, collect);
+            log.info("案号：{}:",allGroup0);
+            if(!CollectionUtils.isEmpty(allGroup0)&&allGroup0.size()<=2){
+                map.put(JudgementExt.caseNum,allGroup0.get(allGroup0.size()-1));
+            }
+
             column.setText(collect);
 
-            String s = md5.digestHex(dsId);
-            column.setId(s);
+            column.setId(DsUtil.getDsId(map));
 
             column.setSource("1");
             column.setPublishType("3");
