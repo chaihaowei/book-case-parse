@@ -24,10 +24,15 @@ public class Doc2Docx {
     }
 
 
-
-    public static File getFile(String name)throws Exception  {
-        if(StringUtils.endsWith(name, DOCX)){
-            return FileUtil.newFile(name);
+    /**
+     * 获取转换后的file
+     * @param soucePath 路径
+     * @return 转换后的file
+     * @throws Exception
+     */
+    public static File getFile(String soucePath)throws Exception  {
+        if(StringUtils.endsWith(soucePath, DOCX)){
+            return FileUtil.newFile(soucePath);
         }
         if(!getLicense()){
             throw new RuntimeException("license 验证失败");
@@ -40,9 +45,9 @@ public class Doc2Docx {
         }
         String path =tmp+"/"+s+DOCX;
 
-        Document doc = new Document(name);
+        Document doc = new Document(soucePath);
         doc.save(path);
-        log.info("tmp path:{}",path);
+        log.info("tmp file path:{}",path);
         File file = FileUtil.newFile(path);
         return file;
     }
