@@ -72,13 +72,17 @@ public class OneParWordUtil {
             @Override
             public boolean accept(File pathname) {
                 String name = pathname.getName();
-                return StringUtils.endsWith(name, "docx")||StringUtils.endsWith(name, "doc");
+                return StringUtils.endsWith(name, "docx")||StringUtils.endsWith(name, "doc")&& !pathname.isHidden()&& StringUtils.indexOf(name,"~$")<0;
             }
         };
         CaseTypeEnum[] values = CaseTypeEnum.values();
         List<CaseTypeEnum> caseTypeEnums = Arrays.asList(values);
 
         List<File> files = FileUtil.loopFiles("/Users/chaihaowei/bookParse/parse", fileFilter);
+        for (File file : files) {
+
+            println(file.getAbsolutePath() + "isHidder" + file.isHidden());
+        }
         List<DsColumn> dsColumnList = Lists.newArrayList();
         for (File e : files) {
             log.info(FileUtil.getAbsolutePath(e));
