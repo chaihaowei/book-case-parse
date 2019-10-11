@@ -21,6 +21,11 @@ spring:
 logging:
   level:
     com.icourt.*: DEBUG
+
+#hbase
+hbase:
+  zookeeper:
+    quorum: ds1:2181,ds2:2181,ds3:2181,ds4:2181,ds5:2181,ds6:2181
 #    org:
 #      docx4j:
 #        convert:
