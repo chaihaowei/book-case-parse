@@ -11,6 +11,7 @@ import com.icourt.lawyercrawlparse.dao.FaxindataMapper;
 import com.icourt.lawyercrawlparse.entity.DsColumn;
 import com.icourt.lawyercrawlparse.entity.Faxindata;
 import com.icourt.lawyercrawlparse.entity.JudgementExt;
+import com.icourt.lawyercrawlparse.hbase.HBaseService;
 import com.icourt.lawyercrawlparse.service.IFaxindataService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -39,12 +40,36 @@ public class FaxindataController {
 
     @Autowired
     private IFaxindataService faxindataService;
+
+    @Autowired
+    private HBaseService hBaseService;
+
     @GetMapping("/fax/{bookId}")
     public void getDs(@PathVariable(name ="bookId")String bookId){
 
 
 
         List<DsColumn> dsColumns = faxindataService.transToDs(bookId);
+        System.out.println(1);
+        try {
+            hBaseService.batch("goodcase_demo", dsColumns);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @GetMapping("/faxin")
+    public void insertHBase() {
+
+    }
+
+    @GetMapping("/inithbase/{tableName}")
+    public void initHbaseTable(@PathVariable(name ="tableName")String tableName) {
+        try {
+            hBaseService.initMetaData(tableName);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @GetMapping("/fax/case-titile")
