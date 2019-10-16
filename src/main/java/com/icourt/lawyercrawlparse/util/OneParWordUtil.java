@@ -60,9 +60,9 @@ public class OneParWordUtil {
 //        Docx4J.toHTML(htmlSettings, baos, Docx4J.FLAG_NONE);
         String str = Doc2Docx.parseWord2Html(path);
 
-//        Document html = Jsoup.parse(str);
-//        html.select("p").append("\n");
-//        str = html.html();
+        Document html = Jsoup.parse(str);
+        html.select("p").append("\n");
+        str = html.html();
 
         //过滤table标签
         Whitelist whitelist = new Whitelist().addTags("table", "tbody", "td", "tr", "img");
@@ -164,42 +164,42 @@ public class OneParWordUtil {
             if (StringUtils.isBlank(line)) {
                 continue;
             }
-            if (!normalFlag) {
-                if (i > 0) {
-                    if (line.endsWith("法院")) {
-                        String preLine = lines.get(i - 1);
-                        preLine = StringUtils.replace(preLine, " ", "").replace("\u2028", "");
-                        if (preLine == "" || (preLine.contains("附") && preLine.endsWith("书"))) {
-                            normalFlag = true;
-                            nextCase.add(line + "_____________");
-                            continue;
-                        }
-                        //                    if (!line.contains("法院")) {
-                        //                        String nextLine = "";
-                        //                        int j = i;
-                        //                        do {
-                        //                            j += 1;
-                        //                            nextLine = lines.get(j);
-                        //                            nextLine = StringUtils.replace(nextLine, " ", "").replace("\u2028", "");
-                        //                            System.out.println(nextLine.length());
-                        //                        } while (nextLine.length() == 0);
-                        //                        if (nextLine.contains("法院")) {
-                        //                            normalFlag = true;
-                        //                            nextCase.add(line);
-                        //                            continue;
-                        //                        }
-                        //                    } else {
-                        //                        nextCase.add(line + "____");
-                        //                        normalFlag = true;
-                        //                        continue;
-                        //                    }
-                    }
-                }
-                goodCaseText += line + "\n";
-            }
-            if (normalFlag) {
-                normalCaseText += line + "\n";
-            }
+//            if (!normalFlag) {
+//                if (i > 0) {
+//                    if (line.endsWith("法院")) {
+//                        String preLine = lines.get(i - 1);
+//                        preLine = StringUtils.replace(preLine, " ", "").replace("\u2028", "");
+//                        if (preLine == "" || (preLine.contains("附") && preLine.endsWith("书"))) {
+//                            normalFlag = true;
+//                            nextCase.add(line + "_____________");
+//                            continue;
+//                        }
+//                        //                    if (!line.contains("法院")) {
+//                        //                        String nextLine = "";
+//                        //                        int j = i;
+//                        //                        do {
+//                        //                            j += 1;
+//                        //                            nextLine = lines.get(j);
+//                        //                            nextLine = StringUtils.replace(nextLine, " ", "").replace("\u2028", "");
+//                        //                            System.out.println(nextLine.length());
+//                        //                        } while (nextLine.length() == 0);
+//                        //                        if (nextLine.contains("法院")) {
+//                        //                            normalFlag = true;
+//                        //                            nextCase.add(line);
+//                        //                            continue;
+//                        //                        }
+//                        //                    } else {
+//                        //                        nextCase.add(line + "____");
+//                        //                        normalFlag = true;
+//                        //                        continue;
+//                        //                    }
+//                    }
+//                }
+//                goodCaseText += line + "\n";
+//            }
+//            if (normalFlag) {
+//                normalCaseText += line + "\n";
+//            }
         }
         HashMap<String, Object> map = Maps.newHashMap();
         map.put("caseName", caseName);
