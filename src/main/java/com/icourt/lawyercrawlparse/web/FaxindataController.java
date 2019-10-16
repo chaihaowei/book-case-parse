@@ -13,6 +13,8 @@ import com.icourt.lawyercrawlparse.entity.Faxindata;
 import com.icourt.lawyercrawlparse.entity.JudgementExt;
 import com.icourt.lawyercrawlparse.hbase.HBaseService;
 import com.icourt.lawyercrawlparse.service.IFaxindataService;
+import com.icourt.lawyercrawlparse.util.BookWordUtil;
+import com.icourt.lawyercrawlparse.util.OneParWordUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +60,24 @@ public class FaxindataController {
         }
     }
 
-    @GetMapping("/faxin")
-    public void insertHBase() {
+    @GetMapping("/word")
+    public void insertWord2HBase() {
+        try {
+            List<DsColumn> dsColumns = OneParWordUtil.filePathToBean();
+            hBaseService.batch("goodcase_demo", dsColumns);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    @GetMapping("/book")
+    public void insertBook2HBase() {
+        try {
+            List<DsColumn> dsColumns = BookWordUtil.getDsColumn();
+            hBaseService.batch("goodcase_demo", dsColumns);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @GetMapping("/inithbase/{tableName}")
@@ -70,6 +87,28 @@ public class FaxindataController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @GetMapping("/count/{tableName}")
+    public Long getTableCount(@PathVariable(name ="tableName")String tableName) {
+        long count = 0L;
+        try {
+            count = hBaseService.count(tableName);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return count;
+    }
+
+    @GetMapping("/find")
+    public String getDataByRowKey(String tableName, String rowKey){
+        DsColumn dsColumn = new DsColumn();
+        try {
+            dsColumn = hBaseService.findOne(tableName, rowKey);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JSON.toJSONString(dsColumn);
     }
 
     @GetMapping("/fax/case-titile")
@@ -83,7 +122,7 @@ public class FaxindataController {
         collect1=collect1.stream().filter(e-> CollectionUtils.isNotEmpty(ReUtil.findAllGroup0(caseSpilt, e))).collect(Collectors.toList());
         String str = collect1.stream().collect(Collectors.joining("\n"));
 
-        File file =  FileUtil.newFile("/Users/chaihaowei/Desktop/2.txt");
+        File file =  FileUtil.newFile("/Users/wangcai/Desktop/2.txt");
         FileOutputStream fos = new FileOutputStream(file);
         IoUtil.writeUtf8(fos,true,str);
     }

@@ -43,8 +43,12 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
 
     //下一条开始是这个则这条为标题
     private static final String contentSplit = "【";
-    private static final String annon = "[一二三四五六七八九]{1,10}、";
+    private static final String annon = "[一二三四五六七八九]{1,10}、|(（)[一二三四五六七八九]{1,10}(）)";
     private static final String filterd = "(公报案例)|(指导性案例)|(审判指导与参考)|(典型案例发布)|(域外撷英){1}";
+
+    private static final String caseSpilt="(^([.]?))[0-9]{1,3}.*案";
+    private static final String keyPointsSplit = "案——";
+
     //是否换行符
     private static final String isPargN = "(\r\n|\r|\n|\n\r)";
     private List<String> caseLists = Lists.newArrayList();
@@ -96,6 +100,8 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
 
 
         log.info("开始过滤掉不需要的案例 过滤后：{}", casePars.size());
+        List<Faxindata> faxindata1 = casePars.get("18.姚某与覃某探视权纠纷案");
+        List<Faxindata> faxindata2 = casePars.get("42.海南广业房地产有限公司诉北京银行股份有限公司等存单纠纷案");
         casePars.forEach((k, v) -> {
             v.forEach(item -> {
                 String text = Jsoup.clean(item.getArticleContent(), "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
@@ -241,48 +247,55 @@ public class FaxindataServiceImpl implements IFaxindataService, InitializingBean
         Digester md5 = new Digester(DigestAlgorithm.MD5);
 
         caseMap.forEach((k, v) -> {
+            if (org.apache.commons.collections4.CollectionUtils.isNotEmpty(ReUtil.findAllGroup0(caseSpilt, k))) {
+                DsColumn column = new DsColumn();
+                HashMap<String, Object> map = Maps.newHashMap();
+                if (org.apache.commons.collections4.CollectionUtils.isNotEmpty(ReUtil.findAllGroup0(keyPointsSplit, k))) {
+                    map.put("keyPoint", k.split(keyPointsSplit)[1]);
+                }
+                map.put("caseName", k);
+                map.put("source_type", 3);
 
-            DsColumn column = new DsColumn();
-            HashMap<String, Object> map = Maps.newHashMap();
-            map.put("caseName", k);
-            map.put("source_type", 3);
+                map.put("caseEnumType", 1);
+//                map.put("source", )
+                map.put(JudgementExt.textCause, v.stream().findFirst().orElse(new Faxindata()).getCaseCode());
 
-            map.put("caseEnumType", 1);
-            map.put(JudgementExt.textCause, v.stream().findFirst().orElse(new Faxindata()).getCaseCode());
+                map.put(JudgementExt.source, v.stream().findFirst().orElse(new Faxindata()).getBookTitle());
 
-            column.setExt(JSON.toJSONString(map));
-            if(!CollectionUtils.isEmpty(v)) {
-                column.setRemark(v.get(0).getBookTitle());
+                column.setExt(JSON.toJSONString(map));
+                if (!CollectionUtils.isEmpty(v)) {
+                    column.setRemark(v.get(0).getBookTitle());
+                }
+                column.setScore("50");
+                column.setSource("al_crawl_courtal");
+
+                String collect = v.stream().map(e -> e.getArticleTitle() + "\n" + e.getArticleContent()).collect(Collectors.joining("\n"));
+
+                List<String> allGroup0 = ReUtil.findAllGroup0(CASE_NUMBER_STRICT_PATTERN, collect);
+                log.info("案号：{}:", allGroup0);
+                if (!CollectionUtils.isEmpty(allGroup0) && allGroup0.size() <= 2) {
+                    map.put(JudgementExt.caseNum, allGroup0.get(allGroup0.size() - 1));
+                }
+
+                column.setText(collect);
+
+                column.setId(DsUtil.getDsId(map));
+
+                column.setSource("1");
+                column.setPublishType("7");
+
+                Date date = new Date();
+                Long time = date.getTime();
+
+                column.setUploadtimestamp(time.toString());
+                System.out.println(JSON.toJSONString(column));
+                resultList.add(column);
             }
-            column.setScore("50");
-            column.setSource("al_crawl_courtal");
-
-            String collect = v.stream().map(e -> e.getArticleTitle() + "\n" + e.getArticleContent()).collect(Collectors.joining("\n"));
-
-            List<String> allGroup0 = ReUtil.findAllGroup0(CASE_NUMBER_STRICT_PATTERN, collect);
-            log.info("案号：{}:",allGroup0);
-            if(!CollectionUtils.isEmpty(allGroup0)&&allGroup0.size()<=2){
-                map.put(JudgementExt.caseNum,allGroup0.get(allGroup0.size()-1));
-            }
-
-            column.setText(collect);
-
-            column.setId(DsUtil.getDsId(map));
-
-            column.setSource("1");
-            column.setPublishType("3");
-
-            Date date = new Date();
-            Long time = date.getTime();
-
-            column.setUploadtimestamp(time.toString());
-            System.out.println(JSON.toJSONString(column));
-            resultList.add(column);
         });
 
-        resultList.forEach(e -> {
-            dsColumnMapper.insert(e);
-        });
+//        resultList.forEach(e -> {
+//            dsColumnMapper.insert(e);
+//        });
         log.info("SUCCESS");
         return resultList;
     }

@@ -68,4 +68,6 @@ public interface HBaseService {
      */
     boolean exists(String tableName, String rowKey) throws Exception;
 
+    public long count(String tableName) throws Throwable;
+
 }

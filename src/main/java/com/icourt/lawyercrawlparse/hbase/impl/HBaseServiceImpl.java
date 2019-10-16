@@ -9,7 +9,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.client.coprocessor.AggregationClient;
+import org.apache.hadoop.hbase.client.coprocessor.LongColumnInterpreter;
 import org.apache.hadoop.hbase.coprocessor.AggregateImplementation;
+import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.FilterList;
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -293,6 +298,23 @@ public class HBaseServiceImpl implements HBaseService {
         }
         htbInputDes.addCoprocessor(AggregateImplementation.class.getName());
         admin.createTable(htbInputDes);
+    }
+
+    @Override
+    public long count(String tableName) throws Throwable {
+        log.info("start to count ds");
+        AggregationClient aggre = new AggregationClient(hBaseConfig.getCfg());
+        Scan scan = new Scan();
+        scan.addFamily(Bytes.toBytes(DsColumn.FamilyEnum.mark.name()));
+
+        // 以下只统计未被删除的
+        FilterList filters = new FilterList();
+        filters.addFilter(new SingleColumnValueFilter(DsColumn.FamilyEnum.mark.name().getBytes(), DsColumn.FamilyQMarkEnum.status.name().getBytes(), CompareFilter.CompareOp.NOT_EQUAL, "1".getBytes()));
+        scan.setFilter(filters);
+
+        long count = aggre.rowCount(TableName.valueOf(tableName), new LongColumnInterpreter(), scan);
+        log.info("end count ds, total rows:" + count);
+        return count;
     }
 
 //    private void saveRow(DsColumn column, Table table, String rowKey, DsColumn oldColumn) throws IOException {

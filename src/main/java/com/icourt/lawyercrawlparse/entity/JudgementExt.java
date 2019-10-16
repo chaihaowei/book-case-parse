@@ -33,6 +33,8 @@ public interface JudgementExt {
     // 案由
     String textCause = "textCause";
 
+    String source = "source";
+
     //是否未公开
     String noPub = "noPub";
 
